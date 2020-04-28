@@ -1,0 +1,6 @@
+FSharp.Quotations.Evaluator
+
+group Test
+    FSharp.Core
+    Expecto
+    Expecto.FsCheck

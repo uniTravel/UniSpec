@@ -1,0 +1,9 @@
+type project
+id UniSpec
+owners UniCloud
+authors Eric
+description
+    Lightweight framework for BDD.
+include-referenced-projects true
+dependencies
+    FSharp.Core >= LOCKEDVERSION
