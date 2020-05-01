@@ -3,39 +3,29 @@ namespace UniSpec
 
 type Table = { Header: string[]; Body: string[,] }
 
-type Category =
-    | Given of string
-    | When of string
-    | Then of string
+type Category = Given | When | Then
 
 type Argument =
     | Table of Table
     | Doc of string
     | Empty
 
-type Step = { LineNumber: int; Category: Category; Argument: Argument }
+type Step = { Name: string; Category: Category; Argument: Argument }
 
 type Examples = { Tags: string list; Table: Table }
-
-type State =
-    | Init
-    | Success
-    | Failed
 
 type Scenario =
     { Name: string
       LineNumber: int
       Tags: string list
-      Steps: Step list
-      State: State }
+      Steps: Step list }
 
 type Outline =
     { Name: string
       LineNumber: int
       Tags: string list
       Steps: Step list
-      Examples: Examples list
-      Scenarios: Scenario list }
+      Examples: Examples list }
 
 type Feature =
     { Name: string

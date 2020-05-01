@@ -16,10 +16,6 @@
     <Compile Include="BlockParser.fs" />
     <Compile Include="Runner.fsi" />
     <Compile Include="Runner.fs" />
-    <Compile Include="FeatureParser.fsi" />
-    <Compile Include="FeatureParser.fs" />
-    <Compile Include="Feature.fsi" />
-    <Compile Include="Feature.fs" />
     <Compile Include="UniSpec.fsi" />
     <Compile Include="UniSpec.fs" />
     <None Include="paket.references" />

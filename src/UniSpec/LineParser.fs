@@ -20,8 +20,8 @@ type LineType =
     | Outline of string
     | Description of string
     | Examples
-    | Step of Category
-    | OutlineStep of Category
+    | Step of Category * string
+    | OutlineStep of Category * string
     | Bullet of Category
     | Item of LineType * ItemType
     | SyntaxError
@@ -39,15 +39,15 @@ module LineParser =
     let (|Trim|) (s: string) = s.Trim()
     let (|AfterStep|_|) =
         function
-        | Step s -> AfterStep s |> Some
-        | Item (Step s, TableRow _) -> AfterStep s |> Some
-        | Item (Step s, MultiLineEnd) -> AfterStep s |> Some
+        | Step (c, s) -> AfterStep (c, s) |> Some
+        | Item (Step (c, s), TableRow _) -> AfterStep (c, s) |> Some
+        | Item (Step (c, s), MultiLineEnd) -> AfterStep (c, s) |> Some
         | _ -> None
     let (|AfterOutlineStep|_|) =
         function
-        | OutlineStep s -> AfterOutlineStep s |> Some
-        | Item (OutlineStep s, TableRow _) -> AfterOutlineStep s |> Some
-        | Item (OutlineStep s, MultiLineEnd) -> AfterOutlineStep s |> Some
+        | OutlineStep (c, s) -> AfterOutlineStep (c, s) |> Some
+        | Item (OutlineStep (c, s), TableRow _) -> AfterOutlineStep (c, s) |> Some
+        | Item (OutlineStep (c, s), MultiLineEnd) -> AfterOutlineStep (c, s) |> Some
         | _ -> None
 
     let (|GivenLine|_|) s =
@@ -115,40 +115,40 @@ module LineParser =
         | Background, GivenLine text
         | Scenario _, GivenLine text
         | AfterStep _, GivenLine text
-        | AfterStep (Given _), AndLine text
-        | AfterStep (Given _), ButLine text
-        | AfterStep (Given _), BulletLine text
-            -> Step (Given text)
+        | AfterStep (Given, _), AndLine text
+        | AfterStep (Given, _), ButLine text
+        | AfterStep (Given, _), BulletLine text
+            -> Step (Given, text)
         | Scenario _, WhenLine text
         | Outline _, WhenLine text
         | AfterStep _, WhenLine text
-        | AfterStep (When _), AndLine text
-        | AfterStep (When _), ButLine text
-        | AfterStep (When _), BulletLine text
-            -> Step (When text)
+        | AfterStep (When, _), AndLine text
+        | AfterStep (When, _), ButLine text
+        | AfterStep (When, _), BulletLine text
+            -> Step (When, text)
         | AfterStep _, ThenLine text
-        | AfterStep (Then _), AndLine text
-        | AfterStep (Then _), ButLine text
-        | AfterStep (Then _), BulletLine text
-            -> Step (Then text)
+        | AfterStep (Then, _), AndLine text
+        | AfterStep (Then, _), ButLine text
+        | AfterStep (Then, _), BulletLine text
+            -> Step (Then, text)
 
         | Outline _, GivenLine text
         | AfterOutlineStep _, GivenLine text
-        | AfterOutlineStep (Given _), AndLine text
-        | AfterOutlineStep (Given _), ButLine text
-        | AfterOutlineStep (Given _), BulletLine text
-            -> OutlineStep (Given text)
+        | AfterOutlineStep (Given, _), AndLine text
+        | AfterOutlineStep (Given, _), ButLine text
+        | AfterOutlineStep (Given, _), BulletLine text
+            -> OutlineStep (Given, text)
         | Outline _, WhenLine text
         | AfterOutlineStep _, WhenLine text
-        | AfterOutlineStep (When _), AndLine text
-        | AfterOutlineStep (When _), ButLine text
-        | AfterOutlineStep (When _), BulletLine text
-            -> OutlineStep (When text)
+        | AfterOutlineStep (When, _), AndLine text
+        | AfterOutlineStep (When, _), ButLine text
+        | AfterOutlineStep (When, _), BulletLine text
+            -> OutlineStep (When, text)
         | AfterOutlineStep _, ThenLine text
-        | AfterOutlineStep (Then _), AndLine text
-        | AfterOutlineStep (Then _), ButLine text
-        | AfterOutlineStep (Then _), BulletLine text
-            -> OutlineStep (Then text)
+        | AfterOutlineStep (Then, _), AndLine text
+        | AfterOutlineStep (Then, _), ButLine text
+        | AfterOutlineStep (Then, _), BulletLine text
+            -> OutlineStep (Then, text)
 
         | Feature _, ScenarioLine text
         | Rule _, ScenarioLine text

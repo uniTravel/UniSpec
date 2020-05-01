@@ -5,7 +5,6 @@ open System.Collections.Generic
 open System.IO
 open System.Reflection
 open System.Text.RegularExpressions
-open FeatureParser
 
 
 // type StepDefinitions(givens, whens, thens, events, valueParsers) =

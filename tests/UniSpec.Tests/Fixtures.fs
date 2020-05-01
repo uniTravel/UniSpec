@@ -1,5 +1,5 @@
 [<AutoOpen>]
-module Fixture
+module internal Fixture
 
 open System
 open System.Diagnostics

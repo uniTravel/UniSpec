@@ -18,8 +18,8 @@ type internal LineType =
     | Outline of string
     | Description of string
     | Examples
-    | Step of Category
-    | OutlineStep of Category
+    | Step of Category * string
+    | OutlineStep of Category * string
     | Bullet of Category
     | Item of LineType * ItemType
     | SyntaxError

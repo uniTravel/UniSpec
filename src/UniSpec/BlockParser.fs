@@ -70,9 +70,9 @@ module BlockParser =
     let parseSteps lines =
         let parseStep lines =
             match lines with
-            | (number, _, Step s) :: xs | (number, _, Step s) :: xs ->
+            | (_, _, Step (c, s)) :: xs | (_, _, OutlineStep (c, s)) :: xs ->
                 let item, newLines = parseItem xs
-                Some { LineNumber = number; Category = s; Argument = item }, newLines
+                Some { Name = s; Category = c; Argument = item }, newLines
             | _ -> None, lines
         let rec parseStepsInternal steps lines =
             let parsedStep, lines = parseStep lines
@@ -94,12 +94,12 @@ module BlockParser =
             match lines with
             | (number, _, Scenario name) :: xs ->
                 let steps, lines = parseSteps xs
-                let parsedScenario = { Name = name; LineNumber = number; Tags = tags; Steps = steps; State = Init }
+                let parsedScenario = { Name = name; LineNumber = number; Tags = tags; Steps = steps }
                 parseScenariosInternal (parsedScenario :: scenarios) outlines lines
             | (number, _, Outline name) :: xs ->
                 let steps, lines = parseSteps xs
                 let examples, lines = parseExamples lines
-                let parsedOutline = { Name = name; LineNumber = number; Tags = tags; Steps = steps; Examples = examples; Scenarios = [] }
+                let parsedOutline = { Name = name; LineNumber = number; Tags = tags; Steps = steps; Examples = examples }
                 parseScenariosInternal scenarios (parsedOutline :: outlines) lines
             | _ -> scenarios, outlines, lines
         let scenarios, outlines, lines = parseScenariosInternal [] [] lines

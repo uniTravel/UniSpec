@@ -1,4 +1,4 @@
-﻿module UniTravel.Shopping.Test
+﻿module UniSpec.Test
 
 open Expecto
 
