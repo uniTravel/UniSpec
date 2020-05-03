@@ -1,12 +1,6 @@
 namespace UniSpec
 
 
-/// <summary>数据表
-/// </summary>
-/// <param name="Header">表头。</param>
-/// <param name="Body">数据体。</param>
-type internal Table = { Header: string[]; Body: string[,] }
-
 /// <summary>步骤类别
 /// <para>Gherkin的步骤最终映射到Given、When、Then三种类别。</para>
 /// </summary>

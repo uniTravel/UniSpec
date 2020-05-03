@@ -1,8 +1,6 @@
 namespace UniSpec
 
 
-type Table = { Header: string[]; Body: string[,] }
-
 type Category = Given | When | Then
 
 type Argument =

@@ -27,12 +27,10 @@ type LineType =
     | SyntaxError
 
 module LineParser =
-
     let tryRegex input pattern =
         let m = Regex.Match(input, pattern, RegexOptions.IgnoreCase)
         if m.Success then m.Groups.[1].Value |> Some
         else None
-
     let startsWith pattern (s: string) =
         s.StartsWith(pattern, System.StringComparison.InvariantCultureIgnoreCase)
 
@@ -110,7 +108,6 @@ module LineParser =
         if trimmed = "\"\"\"" then Some trimmed
         else None
 
-
     let parse = function
         | Background, GivenLine text
         | Scenario _, GivenLine text
@@ -131,7 +128,6 @@ module LineParser =
         | AfterStep (Then, _), ButLine text
         | AfterStep (Then, _), BulletLine text
             -> Step (Then, text)
-
         | Outline _, GivenLine text
         | AfterOutlineStep _, GivenLine text
         | AfterOutlineStep (Given, _), AndLine text
@@ -149,7 +145,6 @@ module LineParser =
         | AfterOutlineStep (Then, _), ButLine text
         | AfterOutlineStep (Then, _), BulletLine text
             -> OutlineStep (Then, text)
-
         | Feature _, ScenarioLine text
         | Rule _, ScenarioLine text
         | FeatureDescription _, ScenarioLine text
@@ -178,7 +173,6 @@ module LineParser =
         | Item (Step _, MultiLineEnd), RuleLine text
         | Item (Examples, TableRow _), RuleLine text
             -> Rule text
-
         | _, Attributes tags
             -> Tag tags
         | FileStart, FeatureLine text
@@ -186,7 +180,6 @@ module LineParser =
         | Feature _, BackgroundLine
         | FeatureDescription _, BackgroundLine
             -> Background
-
         | (Step _ as l), TableRowLine row
         | (OutlineStep _ as l), TableRowLine row
         | (Examples as l), TableRowLine row
@@ -200,18 +193,15 @@ module LineParser =
             -> Item (l, MultiLine line)
         | Item (l, MultiLine _), DocMarker _
             -> Item (l, MultiLineEnd)
-
         | Feature _, line
         | FeatureDescription _, line
             -> FeatureDescription line
-
         | Background, line
         | Rule _, line
         | Scenario _, line
         | Outline _, line
         | Description _, line
             -> Description line
-
         | _, _ -> SyntaxError
 
     let expecting = function

@@ -8,14 +8,14 @@
     <Compile Include="StepAttributes.fs" />
     <Compile Include="HookAttributes.fsi" />
     <Compile Include="HookAttributes.fs" />
+    <Compile Include="Table.fsi" />
+    <Compile Include="Table.fs" />
     <Compile Include="Elements.fsi" />
     <Compile Include="Elements.fs" />
     <Compile Include="LineParser.fsi" />
     <Compile Include="LineParser.fs" />
     <Compile Include="BlockParser.fsi" />
     <Compile Include="BlockParser.fs" />
-    <Compile Include="Runner.fsi" />
-    <Compile Include="Runner.fs" />
     <Compile Include="UniSpec.fsi" />
     <Compile Include="UniSpec.fs" />
     <None Include="paket.references" />

@@ -1,245 +1,136 @@
 namespace UniSpec
 
 open System
-open System.Collections.Generic
 open System.IO
 open System.Reflection
-open System.Text.RegularExpressions
+open System.Collections.Generic
 
 
-// type StepDefinitions(givens, whens, thens, events, valueParsers) =
-//     let instanceProviderFactory = ref (fun () -> new InstanceProvider() :> IInstanceProvider)
-//     /// Returns method's step attribute or null
-//     static let getStepAttributes (m: MemberInfo) =
-//         Attribute.GetCustomAttributes(m,typeof<StepAttribute>)
-//     static let isMethodInScope (feature:string) (scenario:ScenarioSource) (scopedTags,scopedFeatures,scopedScenarios,m) =
-//         let trim (p: string) (s: string) =
-//             if s.StartsWith p then (s.Substring p.Length).Trim() else s
-//         let tagged =
-//             match scopedTags with
-//             | [] -> true
-//             | _ -> scopedTags |> List.exists (fun tag -> scenario.Tags |> Seq.exists ((=) tag))
-//         let featured =
-//             let feature = trim "Feature:" feature
-//             match scopedFeatures with
-//             | [] -> true
-//             | _ -> scopedFeatures |> List.exists ((=) feature)
-//         let scenarioed =
-//             let name =
-//                 trim "Scenario Outline:" scenario.Name |> trim "Scenario:"
-//             match scopedScenarios with
-//             | [] -> true
-//             | _ -> scopedScenarios |> List.exists ((=) name)
-//         featured && scenarioed && tagged
-//     /// Chooses matching definitions for specifed text
-//     static let chooseDefinitions feature scenario text definitions =
-//         let chooseDefinition pattern =
-//             // Ensure the full line matches (tolerating leading whitespace and
-//             // trailing whitespace + punctuation) to stop ambigious matches on
-//             // overlapping definition
-//             // (start of line, optional whitespace, definition, optional whitespace/punctuation, end of line)
-//             let pattern = sprintf "^\s*%s[\s\.,]*$" pattern
-//             let r = Regex.Match(text,pattern)
-//             if r.Success then Some r else None
-//         definitions
-//         |> List.filter (fun (_,m) -> m |> isMethodInScope feature scenario)
-//         |> List.choose (fun (pattern:string,(_,_,_,m):string list * string list * string list * MethodInfo) ->
-//             chooseDefinition pattern |> Option.map (fun r -> r,m)
-//         )
-//     /// Extract arguments from specified match
-//     static let extractArgs (r: Match) =
-//         let args = List<string>()
-//         for i = 1 to r.Groups.Count-1 do
-//             r.Groups.[i].Value |> args.Add
-//         args.ToArray()
-//     /// Gets description as scenario lines
-//     static let getDescription steps =
-//             steps
-//             |> Seq.map (fun (_, line) -> line.Text)
-//             |> String.concat "\r\n"
-//     /// Chooses definitions for specified step and text
-//     let matchStep feature scenario = function
-//         | GivenStep text -> chooseDefinitions feature scenario text givens
-//         | WhenStep text -> chooseDefinitions feature scenario text whens
-//         | ThenStep text -> chooseDefinitions feature scenario text thens
-//     /// Resolves line
-//     let resolveLine feature (scenario:ScenarioSource) (step,line) =
-//         let matches = matchStep feature scenario step
-//         let fail e =
-//             let m = sprintf "%s on line %d in %s\r\n\t\"%s\"" e line.Number (feature.Trim()) (line.Text.Trim())
-//             StepException(m,line.Number,scenario.Name) |> raise
-//         if matches.IsEmpty then fail "Missing step definition"
-//         if matches.Length > 1 then
-//             let ms = matches |> List.map (fun (m,mi) -> sprintf "%s.%s" mi.DeclaringType.Name mi.Name)
-//             fail <| sprintf "Ambiguous step definition (%s)" (String.concat "|" ms)
-//         let r,m = matches.Head
-//         let tableCount = line.Table |> Option.count
-//         let bulletsCount = line.Bullets |> Option.count
-//         let docCount = line.Doc |> Option.count
-//         let argCount = r.Groups.Count-1+tableCount+bulletsCount+docCount
-//         if m.GetParameters().Length < argCount then
-//             fail "Parameter count mismatch"
-//         line,m,extractArgs r
-//     /// Chooses in scope events
-//     let chooseInScopeEvents feature (scenario:ScenarioSource) =
-//         let choose xs =
-//             xs
-//             |> Seq.filter (fun m -> m |> isMethodInScope feature scenario)
-//             |> Seq.map (fun (_,_,_,e) -> e)
-//         events
-//         |> fun (ea,eb,ec,ed) -> choose ea, choose eb, choose ec, choose ed
-//     new () =
-//         StepDefinitions(Assembly.GetCallingAssembly())
-//     /// Constructs instance by reflecting against specified assembly
-//     new (assembly:Assembly) =
-//         StepDefinitions(assembly.GetTypes())
-//     /// Constructs instance by reflecting against specified types
-//     new (types:Type[]) =
-//         let getScope attributes =
-//             attributes
-//             |> Seq.cast
-//             |> Seq.fold (fun (tags,features,scenarios) (x:StepScopeAttribute) ->
-//                 x.Tag::tags, x.Feature::features, x.Scenario::scenarios
-//             ) ([],[],[])
-//         let methods =
-//             types
-//             |> Seq.collect (fun t ->
-//                 let attributes = t.GetCustomAttributes(typeof<StepScopeAttribute>,true)
-//                 let tags, features, scenarios = getScope attributes
-//                 t.GetMethods()
-//                 |> Seq.map (fun m ->
-//                     let attributes = m.GetCustomAttributes(typeof<StepScopeAttribute>,true)
-//                     let tags', features', scenarios' = getScope attributes
-//                     tags@tags' |> List.filter (not << String.IsNullOrEmpty),
-//                         features@features' |> List.filter (not << String.IsNullOrEmpty),
-//                             scenarios@scenarios' |> List.filter (not << String.IsNullOrEmpty),
-//                                 m
-//                 )
-//             )
-//         StepDefinitions(methods)
-//     internal new (methods:(string list * string list * string list * MethodInfo) seq) =
-//         /// Step methods
-//         let givens, whens, thens =
-//             methods
-//             |> Seq.map (fun ((_,_,_,m) as sm) -> sm, getStepAttributes m)
-//             |> Seq.filter (fun (m,ca) -> ca.Length > 0)
-//             |> Seq.collect (fun ((_,_,_,m) as sm,ca) ->
-//                 ca
-//                 |> Array.map (fun a ->
-//                     let p =
-//                         match (a :?> StepAttribute).Step with
-//                         | null -> m.Name
-//                         | step -> step
-//                     p,a,sm
-//                 )
-//                 |> Seq.distinctBy (fun (p,a,m) -> p)
-//             )
-//             |> Seq.fold (fun (gs,ws,ts) (p,a,m) ->
-//                 match a with
-//                 | :? GivenAttribute -> ((p,m)::gs,ws,ts)
-//                 | :? WhenAttribute -> (gs,(p,m)::ws,ts)
-//                 | :? ThenAttribute -> (gs,ws,(p,m)::ts)
-//                 | _ -> invalidOp "Unhandled StepAttribute"
-//             ) ([],[],[])
+type Action = delegate of unit -> unit
 
-//         let filter (t:Type) (elements:(string list * string list * string list * MethodInfo) seq) =
-//             elements |> Seq.filter (fun (_,_,_,m) -> null <> Attribute.GetCustomAttribute(m,t))
-//         /// Step events
-//         let events = methods |> filter typeof<EventAttribute>
-//         let beforeScenario = events |> filter typeof<BeforeScenarioAttribute>
-//         let afterScenario = events |> filter typeof<AfterScenarioAttribute>
-//         let beforeStep = events |> filter typeof<BeforeStepAttribute>
-//         let afterStep = events |> filter typeof<AfterStepAttribute>
-//         let events = beforeScenario, afterScenario, beforeStep, afterStep
-//         /// Parser methods
-//         let valueParsers =
-//             methods
-//             |> filter typeof<ParserAttribute>
-//             |> Seq.map (fun (_,_,_,m) -> m.ReturnType, m)
-//             |> Dict.ofSeq
-//         StepDefinitions(givens,whens,thens,events,valueParsers)
+type TemplateKey = { Feature: string; LineNumber: int; Scenario: string }
 
-//     /// Provides a mechanism to customize the creation of
-//     /// - StepDefinition classes
-//     /// - Items that need their lifetimes managed at the Scenario run level (TickSpec will Dispose the ServiceProvider at the end of a Test Run)
-//     // - Items that should be shared at Test Run level (e.g. Database fixtures might need to establish/tear down once per test run using xUnit mechanisms in order to avoid polluting the Steps to achieve that)
-//     member __.ServiceProviderFactory
-//         with set providerFactory =
-//             let mkScenarioContainer () : IInstanceProvider =
-//                 new ExternalServiceProviderInstanceProvider(providerFactory()) :> _
-//             instanceProviderFactory := mkScenarioContainer
+type Todo = { Key: TemplateKey; Tags: string list; Action: Action }
 
-//     /// Generate scenarios from specified lines (source undefined)
-//     member __.GenerateScenarios (lines:string []) =
-//         let featureSource = parseFeature lines
-//         let feature = featureSource.Name
-//         featureSource.Scenarios
-//         |> Seq.map (fun scenario ->
-//             let steps =
-//                 scenario.Steps
-//                 |> Seq.map (resolveLine feature scenario)
-//                 |> Seq.toArray
-//             let events = chooseInScopeEvents feature scenario
-//             let action = generate events valueParsers (scenario.Name, steps) instanceProviderFactory
-//             {Name=scenario.Name;Description=getDescription scenario.Steps;
-//              Action=TickSpec.Action(action);Parameters=scenario.Parameters;Tags=scenario.Tags}
-//         )
-//     member this.GenerateScenarios (reader:TextReader) =
-//         this.GenerateScenarios(TextReader.readAllLines reader)
-//     member this.GenerateScenarios (feature:System.IO.Stream) =
-//         use reader = new StreamReader(feature)
-//         this.GenerateScenarios(reader)
-//     /// Execute step definitions in specified lines (source undefined)
-//     member this.Execute (lines:string[]) =
-//         this.GenerateScenarios lines
-//         |> Seq.iter (fun scenario -> scenario.Action.Invoke())
-//     member this.Execute (reader:TextReader) =
-//         this.Execute(TextReader.readAllLines reader)
-//     member this.Execute (feature:System.IO.Stream) =
-//         use reader = new StreamReader(feature)
-//         this.Execute (reader)
-//     /// Generates feature in specified lines from source document
-//     member __.GenerateFeature (sourceUrl:string,lines:string[]) =
-//         let featureSource = parseFeature lines
-//         let feature = featureSource.Name
-//         let scenarios = __.GenerateScenarios lines
-//         let assembly = null
-//         { Name = featureSource.Name;
-//           Source = sourceUrl;
-//           Assembly = assembly;
-//           Scenarios = scenarios |> Seq.toArray
-//         }
-//     member this.GenerateFeature (sourceUrl:string,reader:TextReader) =
-//         this.GenerateFeature(sourceUrl, TextReader.readAllLines reader)
-//     member this.GenerateFeature (sourceUrl:string,feature:System.IO.Stream) =
-//         use reader = new StreamReader(feature)
-//         this.GenerateFeature(sourceUrl, reader)
-//     member this.GenerateFeature (path:string) =
-//         this.GenerateFeature(path,File.ReadAllLines(path))
-//     /// Generates scenarios in specified lines from source document
-//     member this.GenerateScenarios (sourceUrl:string,lines:string[]) =
-//         this.GenerateFeature(sourceUrl,lines).Scenarios
-//     member this.GenerateScenarios (sourceUrl:string,reader:TextReader) =
-//         this.GenerateScenarios(sourceUrl, TextReader.readAllLines reader)
-//     member this.GenerateScenarios (sourceUrl:string,feature:System.IO.Stream) =
-//         if feature = null then
-//             let message =
-//                 "No stream found for resource: " + sourceUrl +
-//                 ". Perhaps there was a typo, or the feature file " +
-//                 "wasn't compiled as an EmbeddedResource?"
-//             raise (new ArgumentNullException("feature", message))
-//         use reader = new StreamReader(feature)
-//         this.GenerateScenarios(sourceUrl, reader)
-//     member this.GenerateScenarios (path:string) =
-//         this.GenerateScenarios(path,File.ReadAllLines(path))
-//     /// Executes step definitions in specified lines from source document
-//     member this.Execute (sourceUrl:string,lines:string[]) =
-//         let scenarios = this.GenerateScenarios(sourceUrl,lines)
-//         scenarios |> Seq.iter (fun action -> action.Action.Invoke())
-//     member this.Execute (sourceUrl:string,reader:TextReader) =
-//         this.Execute(sourceUrl, TextReader.readAllLines reader)
-//     member this.Execute (sourceUrl:string,feature:System.IO.Stream) =
-//         use reader = new StreamReader(feature)
-//         this.Execute (sourceUrl,reader)
-//     member this.Execute (path:string) =
-//         this.Execute(path,File.ReadAllLines(path))
+type Template =
+    { Before: MethodInfo voption
+      Steps: (MethodInfo * (string * Type)[] ) list
+      After: MethodInfo voption }
+
+type Task =
+    { Key: TemplateKey
+      Tags: string list
+      Steps: Step list
+      ArgDict: IDictionary<string, string> voption }
+
+
+[<Sealed>]
+type UniSpec (assembly: Assembly) =
+    let stepDict = Dictionary<string, MethodInfo>()
+    let beforeDict = Dictionary<Type, MethodInfo>()
+    let afterDict = Dictionary<Type, MethodInfo>()
+    let templateDict = Dictionary<TemplateKey, Template>()
+    let tasksDict = Dictionary<string, Todo list>()
+
+    let parseFeature resource =
+        let stream = assembly.GetManifestResourceStream resource
+        let lines = seq {
+            let mutable notEof = true
+            use reader = new StreamReader(stream)
+            while notEof do
+                let line = reader.ReadLine()
+                if isNull line then notEof <- false
+                else yield line }
+        resource, BlockParser.parse lines
+    let generateTemplate key (steps: Step list) =
+        let mis =
+            steps |> List.map (fun step ->
+                if stepDict.ContainsKey step.Name then
+                    let mi = stepDict.[step.Name]
+                    let paras = mi.GetParameters() |> Array.map (fun para -> para.Name, para.ParameterType)
+                    mi, paras
+                else failwithf "Could not find step definition of %s" step.Name)
+        let (mi, _) = mis.Head
+        let t = mi.DeclaringType
+        if mis.Tail |> List.exists (fun (mi, _) -> mi.DeclaringType <> t ) then
+            failwithf "Steps should in same module: Feature[%s]; LineNumber[%d]; Scenario[%s]" key.Feature key.LineNumber key.Scenario
+        let before = if beforeDict.ContainsKey t then ValueSome beforeDict.[t] else ValueNone
+        let after = if afterDict.ContainsKey t then ValueSome afterDict.[t] else ValueNone
+        { Before = before; Steps = mis; After = after }
+    let getExample feature (outline: Outline) examples =
+        Table.paras examples.Table
+        |> List.map (fun argDict ->
+            let key = { Feature = feature.Name; LineNumber = outline.LineNumber; Scenario = outline.Name }
+            { Key = key;
+              Tags = feature.Tags @ outline.Tags @ examples.Tags
+              Steps = feature.Background @ outline.Steps
+              ArgDict = ValueSome argDict })
+    let generate feature =
+        feature.Scenarios |> List.iter (fun scenario ->
+            let key = { Feature = feature.Name; LineNumber = scenario.LineNumber; Scenario = scenario.Name }
+            let steps = feature.Background @ scenario.Steps
+            templateDict.Add(key, generateTemplate key steps))
+        feature.Outlines |> List.iter (fun outline ->
+            let key = { Feature = feature.Name; LineNumber = outline.LineNumber; Scenario = outline.Name }
+            let steps = feature.Background @ outline.Steps
+            templateDict.Add(key, generateTemplate key steps))
+        let todo key steps (argDict: IDictionary<string, string> voption) =
+            let template = templateDict.[key]
+            fun () ->
+                match template.Before with
+                | ValueSome mi -> mi.Invoke(null, null) |> ignore
+                | ValueNone -> ()
+                List.iter2 (fun step (mi: MethodInfo, paras) ->
+                    let stepArg =
+                        match step.Argument with
+                        | Table table -> [||]
+                        | Doc doc -> [| Convert.ChangeType(doc, typeof<string>) |]
+                        | Empty -> [||]
+                    let args =
+                        match argDict with
+                        | ValueNone -> stepArg
+                        | ValueSome argDict ->
+                            let outlineArgs = paras |> Array.map (fun (n, t: Type) -> Convert.ChangeType(argDict.[n], t))
+                            Array.append outlineArgs stepArg
+                    mi.Invoke(null, args) |> ignore
+                ) steps template.Steps
+                match template.After with
+                | ValueSome mi -> mi.Invoke(null, null) |> ignore
+                | ValueNone -> ()
+        let tasks = [
+            yield! feature.Scenarios
+            |> List.map (fun scenario ->
+                let key = { Feature = feature.Name; LineNumber = scenario.LineNumber; Scenario = scenario.Name }
+                { Key = key
+                  Tags = feature.Tags @ scenario.Tags
+                  Steps = feature.Background @ scenario.Steps
+                  ArgDict = ValueNone })
+            yield! feature.Outlines
+            |> List.collect (fun outline ->
+                outline.Examples |> List.collect (fun examples -> getExample feature outline examples))]
+        tasks |> List.map (fun task ->
+            { Key = task.Key; Tags = task.Tags; Action = Action(todo task.Key task.Steps task.ArgDict) })
+    do
+        assembly.GetTypes()
+        |> Array.filter (fun t -> t.IsDefined(typeof<SpecAttribute>))
+        |> Array.iter (fun t ->
+            t.GetMethods()
+            |> Array.iter (fun m ->
+                if m.IsDefined(typeof<StepAttribute>) then stepDict.Add(m.Name, m)
+                if m.IsDefined(typeof<BeforeAttribute>) then beforeDict.Add(t, m)
+                if m.IsDefined(typeof<AfterAttribute>) then afterDict.Add(t, m)))
+        assembly.GetManifestResourceNames()
+        |> Array.map parseFeature
+        |> Array.iter (fun (resource, feature) -> tasksDict.Add(resource, generate feature))
+
+    member _.Get resource =
+        let resource = assembly.GetName().Name + resource
+        if tasksDict.ContainsKey resource then tasksDict.[resource]
+        else failwithf "Could not get feature test tasks of %s" resource
+
+    member _.GetTags resource tags =
+        let resource = assembly.GetName().Name + resource
+        if tasksDict.ContainsKey resource then
+            tasksDict.[resource]
+            |> List.filter (fun todo -> List.exists (fun tag -> List.exists (fun t -> t = tag) todo.Tags ) tags)
+        else failwithf "Could not get feature test tasks of %s" resource

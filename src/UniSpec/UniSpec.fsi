@@ -1,2 +1,46 @@
 namespace UniSpec
 
+open System.Reflection
+
+
+/// <summary>执行测试的委托
+/// </summary>
+type Action = delegate of unit -> unit
+
+/// <summary>任务模板Key
+/// </summary>
+/// <param name="Feature">业务功能名称。</param>
+/// <param name="LineNumber">行号。</param>
+/// <param name="Scenario">场景名称。</param>
+type TemplateKey = { Feature: string; LineNumber: int; Scenario: string }
+
+/// <summary>测试任务
+/// <para>围绕场景开展行为测试。</para>
+/// </summary>
+/// <param name="Key">任务模板Key。</param>
+/// <param name="Tags">标签列表。</param>
+/// <param name="Action">执行测试的委托。</param>
+type Todo = { Key: TemplateKey; Tags: string list; Action: Action }
+
+/// <summary>UniSpec模块
+/// </summary>
+[<Sealed>]
+type UniSpec =
+
+    /// <summary>构造函数
+    /// </summary>
+    /// <param name="assembly">程序集，包含Step定义与作为嵌入资源的Feature文件。</param>
+    new : Assembly -> UniSpec
+
+    /// <summary>按Feature文件获取任务清单
+    /// </summary>
+    /// <param name="resource">资源名称，也即Feature文件的文件名。</param>
+    /// <returns>测试任务清单。</returns>
+    member Get : string -> Todo list
+
+    /// <summary>按Feature文件与标签获取任务清单
+    /// </summary>
+    /// <param name="resource">资源名称，也即Feature文件的文件名。</param>
+    /// <param name="tags">标签列表。</param>
+    /// <returns>测试任务清单。</returns>
+    member GetTags : string -> string list -> Todo list

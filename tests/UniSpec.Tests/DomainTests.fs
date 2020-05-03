@@ -5,6 +5,8 @@ open System.Reflection
 open Expecto
 open UniSpec
 
+[<Given>] [<When>]
+let f x = x + 1
 
 let [<Given>] ``First <pm> Test`` x y =
     x + y + 1
@@ -12,7 +14,7 @@ let [<Given>] ``First <pm> Test`` x y =
 [<Tests>]
 let tests =
     testList "General" [
-        ptestCase "1" <| fun _ ->
+        testCase "1" <| fun _ ->
             let a = Assembly.GetExecutingAssembly()
             let ts = a.GetExportedTypes()
             let mis = ts |> Array.collect (fun t -> t.GetMethods())
@@ -23,7 +25,7 @@ let tests =
             let s = Convert.ChangeType("12", typeof<int>)
             let r2 = mi.Invoke(null, [| s; 2 |])
             printfn "Done!"
-        testCase "" <| fun _ ->
+        ptestCase "" <| fun _ ->
             let a = array2D [ [ 1; 2 ]; [ 3; 4 ]; [ 5; 6 ] ]
             let l1 = Array2D.length1 a
             let l2 = Array2D.length2 a

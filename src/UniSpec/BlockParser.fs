@@ -4,21 +4,18 @@ open System.Text
 
 
 module BlockParser =
-
     let raiseParseException message lines =
         match lines with
         | (number, _, _) :: _ ->
             failwithf "Parsing failed on row %d: %s" number message
         | _ ->
             failwithf "Parsing failed on the end of file: %s" message
-
     let parseTags lines =
         let rec parseTagsInternal tags lines =
             match lines with
             | (_, _, Tag tagList) :: xs -> parseTagsInternal (tags @ tagList) xs
             | _ -> tags, lines
         parseTagsInternal [] lines
-
     let parseTable lines =
         let rec readTableRows rows lines =
             match lines with
@@ -29,7 +26,6 @@ module BlockParser =
         match allRows with
         | header :: rows -> { Header = Array.ofList header; Body = array2D rows }, lines
         | _ -> lines |> raiseParseException "Table expected"
-
     let parseMultiLine lines =
         let lines =
             match lines with
@@ -46,7 +42,6 @@ module BlockParser =
         match lines with
         | (_, _, Item (_, MultiLineEnd)) :: xs -> text, xs
         | _ -> lines |> raiseParseException "DocString end expected"
-
     let parseExamples lines =
         let rec parseExamplesInternal examples lines =
             let tags, lines = parseTags lines
@@ -56,7 +51,6 @@ module BlockParser =
                 parseExamplesInternal (examples @ [ { Tags = tags; Table = table } ]) lines
             | _ -> examples, lines
         parseExamplesInternal [] lines
-
     let parseItem lines =
         match lines with
         | (_, _, Item (_, MultiLineStart _)) :: _ ->
@@ -66,7 +60,6 @@ module BlockParser =
             let table, lines = parseTable lines
             Table table, lines
         | _ -> Empty, lines
-
     let parseSteps lines =
         let parseStep lines =
             match lines with
@@ -82,12 +75,10 @@ module BlockParser =
         let steps, lines = parseStepsInternal [] lines
         if steps.IsEmpty then lines |> raiseParseException "At least one step is expected"
         List.rev steps, lines
-
     let parseBackground lines =
         match lines with
         | (_, _, Background) :: xs -> parseSteps xs
         | _ -> [], lines
-
     let parseScenarios lines =
         let rec parseScenariosInternal scenarios outlines lines =
             let tags, lines = parseTags lines
@@ -105,7 +96,6 @@ module BlockParser =
         let scenarios, outlines, lines = parseScenariosInternal [] [] lines
         if scenarios.IsEmpty && outlines.IsEmpty then lines |> raiseParseException "At least one scenario/outline is expected"
         List.rev scenarios, List.rev outlines, lines
-
     let parseFeature lines =
         let tags, lines = parseTags lines
         let featureName, lines =
@@ -116,7 +106,6 @@ module BlockParser =
         let scenarios, outlines, lines = parseScenarios lines
         if not lines.IsEmpty then lines |> raiseParseException "File continues unexpectedly"
         { Name = featureName; Tags = tags; Background = background; Scenarios = scenarios; Outlines = outlines }
-
     let parseFeatureFile parsedLines =
         match parsedLines with
         | (_, _, FileStart) :: xs -> parseFeature xs

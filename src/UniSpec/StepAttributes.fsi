@@ -3,22 +3,27 @@ namespace UniSpec
 open System
 
 
-[<AbstractClass; AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = true)>]
+[<AttributeUsage(AttributeTargets.Class, Inherited = false)>]
+type SpecAttribute =
+    inherit Attribute
+    new : unit -> SpecAttribute
+
+[<AbstractClass; AttributeUsage(AttributeTargets.Method, Inherited = false)>]
 type internal StepAttribute =
     inherit Attribute
     new : unit -> StepAttribute
 
-[<AttributeUsage(AttributeTargets.Method, AllowMultiple = true)>]
+[<AttributeUsage(AttributeTargets.Method, Inherited = false)>]
 type GivenAttribute =
     inherit StepAttribute
     new : unit -> GivenAttribute
 
-[<AttributeUsage(AttributeTargets.Method, AllowMultiple = true)>]
+[<AttributeUsage(AttributeTargets.Method, Inherited = false)>]
 type WhenAttribute =
     inherit StepAttribute
     new : unit -> WhenAttribute
 
-[<AttributeUsage(AttributeTargets.Method, AllowMultiple = true)>]
+[<AttributeUsage(AttributeTargets.Method, Inherited = false)>]
 type ThenAttribute =
     inherit StepAttribute
     new : unit -> ThenAttribute
