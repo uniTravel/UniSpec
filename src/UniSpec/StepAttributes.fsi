@@ -3,11 +3,6 @@ namespace UniSpec
 open System
 
 
-[<AttributeUsage(AttributeTargets.Class, Inherited = false)>]
-type SpecAttribute =
-    inherit Attribute
-    new : unit -> SpecAttribute
-
 [<AbstractClass; AttributeUsage(AttributeTargets.Method, Inherited = false)>]
 type internal StepAttribute =
     inherit Attribute

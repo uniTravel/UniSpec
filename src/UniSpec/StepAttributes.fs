@@ -3,9 +3,6 @@ namespace UniSpec
 open System
 
 
-type SpecAttribute() =
-    inherit Attribute()
-
 [<AbstractClass>]
 type StepAttribute() =
     inherit Attribute()

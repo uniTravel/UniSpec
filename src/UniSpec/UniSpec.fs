@@ -4,6 +4,7 @@ open System
 open System.IO
 open System.Reflection
 open System.Collections.Generic
+open FSharp.Reflection
 
 
 type Action = delegate of unit -> unit
@@ -58,7 +59,7 @@ type UniSpec (assembly: Assembly) =
         let after = if afterDict.ContainsKey t then ValueSome afterDict.[t] else ValueNone
         { Before = before; Steps = mis; After = after }
     let getExample feature (outline: Outline) examples =
-        Table.paras examples.Table
+        Table.args examples.Table
         |> List.map (fun argDict ->
             let key = { Feature = feature.Name; LineNumber = outline.LineNumber; Scenario = outline.Name }
             { Key = key;
@@ -74,24 +75,31 @@ type UniSpec (assembly: Assembly) =
             let key = { Feature = feature.Name; LineNumber = outline.LineNumber; Scenario = outline.Name }
             let steps = feature.Background @ outline.Steps
             templateDict.Add(key, generateTemplate key steps))
-        let todo key steps (argDict: IDictionary<string, string> voption) =
+        let todo key steps argDict =
             let template = templateDict.[key]
             fun () ->
                 match template.Before with
                 | ValueSome mi -> mi.Invoke(null, null) |> ignore
                 | ValueNone -> ()
-                List.iter2 (fun step (mi: MethodInfo, paras) ->
-                    let stepArg =
-                        match step.Argument with
-                        | Table table -> [||]
-                        | Doc doc -> [| Convert.ChangeType(doc, typeof<string>) |]
-                        | Empty -> [||]
+                List.iter2 (fun (step: Step) (mi: MethodInfo, paras) ->
+                    let outlineStep paras (argDict: IDictionary<string, string>) =
+                        paras |> Array.map (fun (n, t: Type) ->
+                            if argDict.ContainsKey n then Convert.ChangeType(argDict.[n], t)
+                            else failwithf "Parameter '%s' should defined by examples table: Step[%s]" n step.Name)
                     let args =
-                        match argDict with
-                        | ValueNone -> stepArg
-                        | ValueSome argDict ->
-                            let outlineArgs = paras |> Array.map (fun (n, t: Type) -> Convert.ChangeType(argDict.[n], t))
-                            Array.append outlineArgs stepArg
+                        match step.Argument, argDict with
+                        | Empty, ValueNone -> null
+                        | Empty, ValueSome argDict -> outlineStep paras argDict
+                        | Table table, ValueNone ->
+                            [| Table.parse table <| snd paras.[paras.Length - 1] |]
+                        | Table table, ValueSome argDict ->
+                            [| yield! outlineStep paras.[0..paras.Length - 2] argDict
+                               Table.parse table <| snd paras.[paras.Length - 1] |]
+                        | Doc doc, ValueNone ->
+                            [| Convert.ChangeType(doc, typeof<string>) |]
+                        | Doc doc, ValueSome argDict ->
+                            [| yield! outlineStep paras.[0..paras.Length - 2] argDict
+                               Convert.ChangeType(doc, typeof<string>) |]
                     mi.Invoke(null, args) |> ignore
                 ) steps template.Steps
                 match template.After with
@@ -112,13 +120,13 @@ type UniSpec (assembly: Assembly) =
             { Key = task.Key; Tags = task.Tags; Action = Action(todo task.Key task.Steps task.ArgDict) })
     do
         assembly.GetTypes()
-        |> Array.filter (fun t -> t.IsDefined(typeof<SpecAttribute>))
+        |> Array.filter FSharpType.IsModule
         |> Array.iter (fun t ->
             t.GetMethods()
             |> Array.iter (fun m ->
-                if m.IsDefined(typeof<StepAttribute>) then stepDict.Add(m.Name, m)
-                if m.IsDefined(typeof<BeforeAttribute>) then beforeDict.Add(t, m)
-                if m.IsDefined(typeof<AfterAttribute>) then afterDict.Add(t, m)))
+                if m.IsDefined(typeof<StepAttribute>, false) then stepDict.Add(m.Name, m)
+                if m.IsDefined(typeof<BeforeAttribute>, false) then beforeDict.Add(t, m)
+                if m.IsDefined(typeof<AfterAttribute>, false) then afterDict.Add(t, m)))
         assembly.GetManifestResourceNames()
         |> Array.map parseFeature
         |> Array.iter (fun (resource, feature) -> tasksDict.Add(resource, generate feature))
@@ -132,5 +140,5 @@ type UniSpec (assembly: Assembly) =
         let resource = assembly.GetName().Name + resource
         if tasksDict.ContainsKey resource then
             tasksDict.[resource]
-            |> List.filter (fun todo -> List.exists (fun tag -> List.exists (fun t -> t = tag) todo.Tags ) tags)
+            |> List.filter (fun todo -> tags |> List.exists (fun tag -> todo.Tags |> List.contains tag))
         else failwithf "Could not get feature test tasks of %s" resource
