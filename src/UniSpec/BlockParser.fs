@@ -1,5 +1,4 @@
 namespace UniSpec
-open System
 open System.Text
 
 
@@ -24,7 +23,9 @@ module BlockParser =
             | _ -> List.rev rows, lines
         let allRows, lines = readTableRows [] lines
         match allRows with
-        | header :: rows -> { Header = Array.ofList header; Body = array2D rows }, lines
+        | head :: rows ->
+            try Table.fromLines head rows, lines
+            with ex -> raiseParseException ex.Message lines
         | _ -> lines |> raiseParseException "Table expected"
     let parseMultiLine lines =
         let lines =

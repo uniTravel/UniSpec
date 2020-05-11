@@ -26,23 +26,13 @@ type Task =
 
 
 [<Sealed>]
-type UniSpec (assembly: Assembly) =
+type UniSpec (path: string, assembly: Assembly) =
     let stepDict = Dictionary<string, MethodInfo>()
     let beforeDict = Dictionary<Type, MethodInfo>()
     let afterDict = Dictionary<Type, MethodInfo>()
     let templateDict = Dictionary<TemplateKey, Template>()
     let tasksDict = Dictionary<string, Todo list>()
 
-    let parseFeature resource =
-        let stream = assembly.GetManifestResourceStream resource
-        let lines = seq {
-            let mutable notEof = true
-            use reader = new StreamReader(stream)
-            while notEof do
-                let line = reader.ReadLine()
-                if isNull line then notEof <- false
-                else yield line }
-        resource, BlockParser.parse lines
     let generateTemplate key (steps: Step list) =
         let mis =
             steps |> List.map (fun step ->
@@ -59,7 +49,7 @@ type UniSpec (assembly: Assembly) =
         let after = if afterDict.ContainsKey t then ValueSome afterDict.[t] else ValueNone
         { Before = before; Steps = mis; After = after }
     let getExample feature (outline: Outline) examples =
-        Table.args examples.Table
+        Table.toArgs examples.Table
         |> List.map (fun argDict ->
             let key = { Feature = feature.Name; LineNumber = outline.LineNumber; Scenario = outline.Name }
             { Key = key;
@@ -91,15 +81,13 @@ type UniSpec (assembly: Assembly) =
                         | Empty, ValueNone -> null
                         | Empty, ValueSome argDict -> outlineStep paras argDict
                         | Table table, ValueNone ->
-                            [| Table.parse table <| snd paras.[paras.Length - 1] |]
+                            [| table |]
                         | Table table, ValueSome argDict ->
-                            [| yield! outlineStep paras.[0..paras.Length - 2] argDict
-                               Table.parse table <| snd paras.[paras.Length - 1] |]
+                            [| yield! outlineStep paras.[0..paras.Length - 2] argDict; table |]
                         | Doc doc, ValueNone ->
-                            [| Convert.ChangeType(doc, typeof<string>) |]
+                            [| doc |]
                         | Doc doc, ValueSome argDict ->
-                            [| yield! outlineStep paras.[0..paras.Length - 2] argDict
-                               Convert.ChangeType(doc, typeof<string>) |]
+                            [| yield! outlineStep paras.[0..paras.Length - 2] argDict; doc |]
                     mi.Invoke(null, args) |> ignore
                 ) steps template.Steps
                 match template.After with
@@ -127,18 +115,16 @@ type UniSpec (assembly: Assembly) =
                 if m.IsDefined(typeof<StepAttribute>, false) then stepDict.Add(m.Name, m)
                 if m.IsDefined(typeof<BeforeAttribute>, false) then beforeDict.Add(t, m)
                 if m.IsDefined(typeof<AfterAttribute>, false) then afterDict.Add(t, m)))
-        assembly.GetManifestResourceNames()
-        |> Array.map parseFeature
-        |> Array.iter (fun (resource, feature) -> tasksDict.Add(resource, generate feature))
+        Directory.EnumerateFiles(path, "*.feature", SearchOption.AllDirectories)
+        |> Seq.map (fun path -> Path.GetFileName path, BlockParser.parse <| File.ReadAllLines path)
+        |> Seq.iter (fun (fileName, feature) -> tasksDict.Add(fileName, generate feature))
 
-    member _.Get resource =
-        let resource = assembly.GetName().Name + resource
-        if tasksDict.ContainsKey resource then tasksDict.[resource]
-        else failwithf "Could not get feature test tasks of %s" resource
+    member _.Get filename =
+        if tasksDict.ContainsKey filename then tasksDict.[filename]
+        else failwithf "Could not get feature test tasks of %s" filename
 
-    member _.GetTags resource tags =
-        let resource = assembly.GetName().Name + resource
-        if tasksDict.ContainsKey resource then
-            tasksDict.[resource]
+    member _.GetTags filename tags =
+        if tasksDict.ContainsKey filename then
+            tasksDict.[filename]
             |> List.filter (fun todo -> tags |> List.exists (fun tag -> todo.Tags |> List.contains tag))
-        else failwithf "Could not get feature test tasks of %s" resource
+        else failwithf "Could not get feature test tasks of %s" filename

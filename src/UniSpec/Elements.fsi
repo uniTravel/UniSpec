@@ -35,11 +35,7 @@ type internal Examples = { Tags: string list; Table: Table }
 /// <param name="LineNumber">行号。</param>
 /// <param name="Tags">标签列表。</param>
 /// <param name="Steps">步骤清单。</param>
-type internal Scenario =
-    { Name: string
-      LineNumber: int
-      Tags: string list
-      Steps: Step list }
+type internal Scenario = { Name: string; LineNumber: int; Tags: string list; Steps: Step list }
 
 /// <summary>场景大纲
 /// <para>参数结构相同的场景聚合，要拆分成场景清单。</para>
@@ -49,12 +45,7 @@ type internal Scenario =
 /// <param name="Tags">标签列表。</param>
 /// <param name="Steps">大纲步骤清单。</param>
 /// <param name="Examples">场景大纲例子。</param>
-type internal Outline =
-    { Name: string
-      LineNumber: int
-      Tags: string list
-      Steps: Step list
-      Examples: Examples list }
+type internal Outline = { Name: string; LineNumber: int; Tags: string list; Steps: Step list; Examples: Examples list }
 
 /// <summary>业务功能
 /// </summary>
@@ -63,9 +54,4 @@ type internal Outline =
 /// <param name="Background">背景。</param>
 /// <param name="Scenarios">场景清单。</param>
 /// <param name="Outlines">场景大纲清单。</param>
-type internal Feature =
-    { Name: string
-      Tags: string list
-      Background: Step list
-      Scenarios: Scenario list
-      Outlines: Outline list }
+type internal Feature = { Name: string; Tags: string list; Background: Step list; Scenarios: Scenario list; Outlines: Outline list }

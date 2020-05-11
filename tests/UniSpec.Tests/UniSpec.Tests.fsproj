@@ -9,7 +9,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Fixtures.fs" />
+    <Compile Include="TableTests.fs" />
+    <Compile Include="ParserTests.fs" />
+    <Compile Include="SpecTests.fs" />
+    <Compile Include="Steps/DataTableStep.fs" />
     <Compile Include="Main.fs" />
     <None Include="paket.references" />
   </ItemGroup>
