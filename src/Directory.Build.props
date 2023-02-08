@@ -1,0 +1,11 @@
+<Project>
+    <PropertyGroup>
+        <Authors>Eric</Authors>
+        <Company>UniCloud</Company>
+        <PackageTags>UniSpec BDD</PackageTags>
+        <Description>.</Description>
+        <RepositoryUrl>https://github.com/uniTravel/UniSpec</RepositoryUrl>
+        <MinVerTagPrefix>v</MinVerTagPrefix>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+</Project>

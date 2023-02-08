@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <InternalsVisibleTo Include="UniSpec.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="StepAttributes.fsi" />
+    <Compile Include="StepAttributes.fs" />
+    <Compile Include="HookAttributes.fsi" />
+    <Compile Include="HookAttributes.fs" />
+    <Compile Include="Table.fsi" />
+    <Compile Include="Table.fs" />
+    <Compile Include="Elements.fsi" />
+    <Compile Include="Elements.fs" />
+    <Compile Include="LineParser.fsi" />
+    <Compile Include="LineParser.fs" />
+    <Compile Include="BlockParser.fsi" />
+    <Compile Include="BlockParser.fs" />
+    <Compile Include="UniSpec.fsi" />
+    <Compile Include="UniSpec.fs" />
+  </ItemGroup>
+</Project>

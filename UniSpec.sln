@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{16F7AD47-F080-4AFC-96E7-AC2178CD0E2D}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "UniSpec", "src\UniSpec\UniSpec.fsproj", "{E545A330-E793-4FD7-8941-CE689D18A171}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{02B73A2F-283F-4D6C-9122-ADDAF9450E8F}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "UniSpec.Tests", "test\UniSpec.Tests\UniSpec.Tests.fsproj", "{E076ED67-237C-46BF-8FDA-C7F039FC1CFE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E545A330-E793-4FD7-8941-CE689D18A171}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E545A330-E793-4FD7-8941-CE689D18A171}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E545A330-E793-4FD7-8941-CE689D18A171}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E545A330-E793-4FD7-8941-CE689D18A171}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E076ED67-237C-46BF-8FDA-C7F039FC1CFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E076ED67-237C-46BF-8FDA-C7F039FC1CFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E076ED67-237C-46BF-8FDA-C7F039FC1CFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E076ED67-237C-46BF-8FDA-C7F039FC1CFE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E545A330-E793-4FD7-8941-CE689D18A171} = {16F7AD47-F080-4AFC-96E7-AC2178CD0E2D}
+		{E076ED67-237C-46BF-8FDA-C7F039FC1CFE} = {02B73A2F-283F-4D6C-9122-ADDAF9450E8F}
+	EndGlobalSection
+EndGlobal
