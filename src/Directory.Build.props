@@ -3,7 +3,7 @@
         <Authors>Eric</Authors>
         <Company>UniCloud</Company>
         <PackageTags>UniSpec BDD</PackageTags>
-        <Description>.</Description>
+        <Description>Lightweight BDD Framework.</Description>
         <RepositoryUrl>https://github.com/uniTravel/UniSpec</RepositoryUrl>
         <MinVerTagPrefix>v</MinVerTagPrefix>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
