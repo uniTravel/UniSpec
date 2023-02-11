@@ -107,10 +107,7 @@ module LineParser =
 
     let (|Attributes|_|) (s: string) =
         if s.Trim() |> startsWith "@" then
-            let tags =
-                [ for tag in Regex.Matches(s, @"@(\w+)") do
-                      yield tag.Value.Substring(1) ]
-
+            let tags = [ for tag in Regex.Matches(s, @"@(\w+)") -> tag.Value.Substring(1) ]
             Attributes tags |> Some
         else
             None
@@ -128,10 +125,8 @@ module LineParser =
 
     let (|TableRowLine|_|) (s: string) =
         if s.Trim().StartsWith("|") then
-            let columnsStrings =
-                s.Trim().Split([| '|' |], System.StringSplitOptions.RemoveEmptyEntries)
-
-            let columns = [ for (Trim s) in columnsStrings -> s ]
+            let cs = s.Trim().Split([| '|' |], System.StringSplitOptions.RemoveEmptyEntries)
+            let columns = [ for (Trim s) in cs -> s ]
             TableRowLine columns |> Some
         else
             None
